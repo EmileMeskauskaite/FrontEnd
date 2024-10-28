@@ -4,7 +4,6 @@ import './styles.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 
-// Sample component for stock graph
 const StockGraph = ({ stockData }) => {
     return <div>Graph Placeholder</div>; // Replace with actual graph logic
 };
@@ -13,33 +12,51 @@ const MyPortfolio = () => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Example user data from location state or hardcoded
-    const userData = location.state?.userData || { username: 'Investor' }; 
+    // Access userData either from location state or localStorage
+    const userData = location.state?.userData || JSON.parse(localStorage.getItem('userData'));
 
-    // Sample data for wallet and investments
+    // State for wallet and market data
     const [wallet, setWallet] = useState({
-        availableFunds: 5000,
-        totalPortfolioValue: 30000,
+        availableFunds: 0,
+        totalPortfolioValue: 0,
     });
 
-    const investments = [
-        { companyName: 'Company A', shares: 10, value: 1000 },
-        { companyName: 'Company B', shares: 5, value: 500 },
-    ]; // Example investments data
-    
-    const marketData = [
-        { companyName: 'Market A', stockIndex: '+2.5%', stockData: [] },
-        { companyName: 'Market B', stockIndex: '-1.2%', stockData: [] },
-    ]; // Example market data
-
-    const hasMore = true; // Example boolean for "Load More"
+    const [investments, setInvestments] = useState([]);
+    const [marketData, setMarketData] = useState([]);
+    const [hasMore, setHasMore] = useState(true);
 
     useEffect(() => {
-        // You can fetch wallet data or perform other effects
-    }, []);
+        if (userData) {
+            fetchUserProfile(userData.userName);
+        } else {
+            console.error("User data is not available, redirecting to login.");
+            navigate('/'); // Redirect to login if user data is missing
+        }
+    }, [userData, navigate]);
 
-    const loadMoreCompanies = () => {
-        // Logic for loading more companies
+    const fetchUserProfile = async (username) => {
+        try {
+            const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?userName=${username}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user profile: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setWallet({
+                availableFunds: data.balance,
+                totalPortfolioValue: data.totalPortfolioValue || 30000,
+            });
+            setInvestments(data.investments || []);
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            alert("Could not fetch user profile. Please try again later.");
+        }
     };
 
     return (
@@ -47,7 +64,7 @@ const MyPortfolio = () => {
             <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
                 <div 
                     className="logo ms-3" 
-                    onClick={() => navigate('/main')} // Redirect to the main page on click
+                    onClick={() => navigate('/main', { state: { userData } })} // Pass userData when navigating to main page
                 />
                 <div className="dropdown">
                     <button
@@ -66,16 +83,19 @@ const MyPortfolio = () => {
                             </button>
                         </li>
                         <li>
-                            <button className="dropdown-item" onClick={() => navigate('/my-portfolio')}>My Portfolio</button>
+                            <button className="dropdown-item" onClick={() => navigate('/my-portfolio', { state: { userData } })}>My Portfolio</button>
                         </li>
                         <li>
-                            <button className="dropdown-item" onClick={() => navigate('/purchases')}>Purchases History</button>
+                            <button className="dropdown-item" onClick={() => navigate('/purchases', { state: { userData } })}>Purchases History</button>
                         </li>
                         <li>
-                            <button className="dropdown-item" onClick={() => navigate('/sales')}>Sales History</button>
+                            <button className="dropdown-item" onClick={() => navigate('/sales', { state: { userData } })}>Sales History</button>
                         </li>
                         <li>
-                            <button className="dropdown-item text-danger" onClick={() => navigate('/')}>Sign Out</button>
+                            <button className="dropdown-item text-danger" onClick={() => {
+                                localStorage.removeItem('userData'); // Clear localStorage on sign out
+                                navigate('/');
+                            }}>Sign Out</button>
                         </li>
                     </ul>
                 </div>
@@ -87,7 +107,6 @@ const MyPortfolio = () => {
                 <section className="mb-5">
                     <h2 className="text-center mb-4">Your Wallet & Portfolio Overview</h2>
                     <div className="row">
-                        {/* Money Left in Wallet */}
                         <div className="col-md-6">
                             <div className="card text-white bg-success mb-3 shadow-lg">
                                 <div className="card-header">Money Left in Wallet</div>
@@ -97,8 +116,6 @@ const MyPortfolio = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Current Portfolio Value */}
                         <div className="col-md-6">
                             <div className="card text-white bg-warning mb-3 shadow-lg">
                                 <div className="card-header">Current Portfolio Value</div>
@@ -111,7 +128,6 @@ const MyPortfolio = () => {
                     </div>
                 </section>
 
-                {/* Investments */}
                 <section className="mb-5">
                     <h2 className="text-center mb-4">Your Investments</h2>
                     <div className="row">

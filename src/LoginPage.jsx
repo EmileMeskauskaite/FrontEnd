@@ -1,33 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap is imported
-import './styles.css'; // Import your custom styles
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './styles.css';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [logoutMessage, setLogoutMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
-        // Check for a logout state from the previous page
         if (location.state?.logout) {
             setLogoutMessage('Successfully logged out');
-            // Clear the message after 5 seconds
-            const timer = setTimeout(() => {
-                setLogoutMessage('');
-            }, 5000);
-            return () => clearTimeout(timer); // Cleanup the timer
+            const timer = setTimeout(() => setLogoutMessage(''), 5000);
+            return () => clearTimeout(timer);
         }
     }, [location.state]);
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        if (username && password) {
-            navigate('/main', { state: { username } });
-        } else {
-            alert('Please enter both username and password');
+
+        if (!username || !password) {
+            setErrorMessage('Please enter both username and password');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:5169/api/user/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userName: username, password }),
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+
+                const balanceResponse = await fetch('http://localhost:5169/api/user/updateusercredentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userName: userData.userName,
+                        password,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        dateOfBirth: userData.dateOfBirth,
+                        address: userData.address,
+                        balance: 0,
+                    }),
+                });
+
+                if (balanceResponse.ok) {
+                    const balanceData = await balanceResponse.json();
+                    const userBalance = balanceData.balance;
+
+                    // Store user data with balance in localStorage
+                    const fullUserData = { ...userData, balance: userBalance };
+                    localStorage.setItem('userData', JSON.stringify(fullUserData));
+
+                    // Navigate to the main page
+                    navigate('/main');
+                } else {
+                    const balanceErrorData = await balanceResponse.json();
+                    setErrorMessage(balanceErrorData.message || 'Failed to fetch user balance.');
+                }
+            } else {
+                const errorData = await response.json();
+                setErrorMessage(
+                    response.status === 401
+                        ? 'Incorrect username or password.'
+                        : errorData.message || 'An unexpected error occurred. Please try again later.'
+                );
+            }
+        } catch (error) {
+            setErrorMessage(
+                error instanceof TypeError
+                    ? 'Network error. Please check your connection and try again.'
+                    : 'Incorrect username or password.'
+            );
         }
     };
 
@@ -38,11 +89,16 @@ const LoginPage = () => {
                     {logoutMessage}
                 </div>
             )}
+            {errorMessage && (
+                <div className="alert alert-danger text-center" style={{ position: 'fixed', top: '0px', width: '100%', zIndex: 1000 }}>
+                    {errorMessage}
+                </div>
+            )}
             <div className="card shadow-lg" style={{ width: '400px' }}>
                 <div className="card-body card-body-white">
                     <h2 className="text-center text-black mb-4">Login</h2>
                     <form onSubmit={handleLogin}>
-                        <div className="mb-3 ">
+                        <div className="mb-3">
                             <label htmlFor="username" className="form-label text-black">Username</label>
                             <input
                                 type="text"

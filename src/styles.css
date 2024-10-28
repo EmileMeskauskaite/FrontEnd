@@ -1,10 +1,9 @@
-/* styles.css */
-
+/* General styles for the whole page */
 html, body {
     height: 100%; /* Ensure the body takes up the full height */
     margin: 0; /* Remove default margin */
-    background-color: #ffffff; /* Black background for the entire site */
-    color: #000000; /* White text for readability */
+    background-color: #ffffff; /* White background for the entire site */
+    color: #000000; /* Black text for readability */
     font-family: 'Arial', sans-serif; /* Default font */
 }
 
@@ -12,18 +11,20 @@ html, body {
     height: 100vh; /* Full height for the flex container */
 }
 
+/* Card styles */
 .card {
     border-radius: 15px; /* Rounded corners for the card */
     border: none; /* Remove default border */
 }
 
 .card-body-red {
-    background-color: #bdbdbd; /* A brighter, more vibrant shade of red */
+    background-color: #bdbdbd; /* A brighter, more vibrant shade of gray */
     color: #fff; /* White text color for readability inside the card */
     border-radius: 15px; /* Rounded corners for the card body */
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Deeper shadow for more depth */
 }
 
+/* Button styles */
 .btn-danger {
     border-radius: 30px; /* Rounded button */
 }
@@ -34,11 +35,11 @@ input {
 
 /* Additional styles for headings and form labels */
 h2 {
-    color: #161616; /* White color for headings */
+    color: #161616; /* Dark color for headings */
 }
 
 .form-label {
-    color: #000000; /* White color for form labels */
+    color: #000000; /* Black color for form labels */
 }
 
 /* Style for the registration link */
@@ -48,27 +49,46 @@ h2 {
 
 .btn-link:hover {
     text-decoration: underline; /* Underline on hover for better visibility */
-    color: #00b26e; /* Darker red for hover effect */
+    color: #00b26e; /* Darker green for hover effect */
 }
-/* styles.css */
+
+/* Custom button styles for the starting money options */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Space between buttons */
+}
 
 .custom-btn {
     background-color: #00b26e; /* Custom background color */
-    color: #000000; /* White text */
+    color: #ffffff; /* White text */
     border: none; /* No border */
     border-radius: 30px; /* Rounded corners */
-    padding: 10px; /* Padding */
-    transition: background-color 0.3s; /* Transition effect */
+    padding: 10px 20px; /* Padding for larger button size */
+    font-size: 1rem; /* Font size */
+    font-weight: bold; /* Make text bold */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+    text-align: center; /* Center the text */
+    flex: 1; /* Allow buttons to grow equally */
 }
 
 .custom-btn:hover {
-    background-color: #00e88f; /* Lighter red on hover */
-    color: #474646; /* Keep text color white on hover */
+    background-color: #00e88f; /* Lighter green on hover */
 }
+
+/* Selected state for the starting money buttons */
+.custom-btn.selected {
+    background-color: #006644; /* Darker green for selected button */
+    color: #ffffff; /* White text for readability */
+}
+
+/* Focus state for inputs */
 .custom-focus:focus {
     border-color: black !important; /* Changes border color to black */
 }
 
+/* Background styles */
 body, html {
     height: 100%;
     margin: 0;
@@ -85,11 +105,10 @@ body, html {
     justify-content: center;
     align-items: center;
 }
+
+/* Dropdown styles */
 .dropdown-menu {
     min-width: 200px; /* Set a minimum width for dropdown */
-}
-/* styles.css */
-.dropdown-menu {
     border-radius: 0.5rem; /* Rounded corners for the dropdown */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add subtle shadow for depth */
 }
@@ -106,6 +125,7 @@ body, html {
     color: #dc3545; /* Red color for Sign Out */
 }
 
+/* Success button styles */
 .btn-success {
     background-color: #00e88f; /* Bootstrap success color */
     border-color: #009c5e; /* No border color */
@@ -115,10 +135,14 @@ body, html {
 .btn-success:hover {
     background-color: #006e44; /* Darker green on hover */
 }
+
+/* Header styles */
 .custom-header {
     background-color: #00b26e; /* Custom green background */
     height: 80px; /* Ensure it matches the height in inline style */
 }
+
+/* Logo styles */
 .logo {
     background-image: url('baltaslogo.png'); /* Adjust the path as needed */
     background-size: contain; /* Scale the background image */
@@ -126,42 +150,4 @@ body, html {
     width: 70px; /* Set width as needed */
     height: 60px; /* Set height as needed */
     cursor: pointer; /* Change cursor on hover */
-}
-
-
-/* Custom green button styles */
-.custom-btn {
-    background-color: #00b26e; /* Initial green background */
-    color: #ffffff; /* White text */
-    border: none; /* No border */
-    border-radius: 30px; /* Rounded corners */
-    padding: 10px 20px; /* Padding for a larger button size */
-    font-size: 1rem; /* Font size */
-    font-weight: bold; /* Make text bold */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-    display: inline-block; /* Inline-block for centering */
-    width: 100%; /* Full-width buttons */
-    text-align: center; /* Center the text */
-}
-
-.custom-btn-cash:hover {
-    background-color: #00e88f; /* Lighter green on hover */
-}
-
-.custom-btn-cash:active {
-    background-color: #006644; /* Darker green on press */
-}
-
-/* Selected state for the starting money buttons */
-.custom-btn-cash.selected {
-    background-color: #006644; /* Darker green for selected button */
-    color: #ffffff; /* White text for readability */
-}
-
-/* Center the button group within the form */
-.button-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px; /* Space between buttons */
 }
