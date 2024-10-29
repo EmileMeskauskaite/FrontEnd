@@ -151,3 +151,17 @@ body, html {
     height: 60px; /* Set height as needed */
     cursor: pointer; /* Change cursor on hover */
 }
+/* Ensure the container takes the full viewport height and enables scrolling */
+.scrollable-container {
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    max-height: 95vh; /* Allow for a small margin */
+    overflow-y: auto; /* Ensure the card itself can scroll if content overflows */
+}

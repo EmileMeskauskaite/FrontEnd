@@ -19,6 +19,7 @@ const EditProfile = () => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [repeatedPassword, setRepeatedPassword] = useState('');
+    const [newUsername, setNewUsername] = useState(''); // New state for new username
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
     const [showModal, setShowModal] = useState(false);
@@ -39,7 +40,7 @@ const EditProfile = () => {
 
     const updateUserCredentials = async () => {
         try {
-            const response = await fetch('http://localhost:5169/api/user/updateusercredentials', {
+            const response = await fetch(`http://localhost:5169/api/user/updateuserinfo?id=${userData.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -66,20 +67,27 @@ const EditProfile = () => {
 
     const changePasswordInDatabase = async (newPassword) => {
         const updatedUserData = { ...userData, password: newPassword };
+
         try {
-            const response = await fetch('http://localhost:5169/api/user/updateusercredentials', {
+            const response = await fetch(`http://localhost:5169/api/user/updatepassword?id=${userData.id}&password=${newPassword}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'accept': 'application/json',
                 },
                 body: JSON.stringify(updatedUserData),
             });
 
-            if (!response.ok) throw new Error('Failed to update password in the database.');
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to update password. Error details:', errorData);
+                throw new Error('Failed to update password in the database.');
+            }
 
-            return await response.json();
+            console.log('Password updated successfully');
         } catch (error) {
-            throw new Error("Failed to update password in the database.");
+            console.error('Error updating password:', error);
+            alert('Could not update password. Please try again later.');
         }
     };
 
@@ -100,35 +108,35 @@ const EditProfile = () => {
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
-    
+
         if (!currentPassword || !newPassword || !repeatedPassword) {
             setMessage("Please fill in all password fields.");
             setMessageType('error');
             setShowModal(true);
             return;
         }
-    
+
         if (currentPassword === newPassword) {
             setMessage("New password cannot be the same as the current password.");
             setMessageType('error');
             setShowModal(true);
             return;
         }
-    
+
         if (!isValidPassword(newPassword)) {
             setMessage("New password must be at least 8 characters long, contain at least one uppercase letter, and at least one number.");
             setMessageType('error');
             setShowModal(true);
             return;
         }
-    
+
         if (newPassword !== repeatedPassword) {
             setMessage("New password and repeated password do not match.");
             setMessageType('error');
             setShowModal(true);
             return;
         }
-    
+
         const isCurrentPasswordValid = await validateCurrentPassword();
         if (!isCurrentPasswordValid) {
             setMessage("Current password is incorrect.");
@@ -136,16 +144,16 @@ const EditProfile = () => {
             setShowModal(true);
             return;
         }
-    
+
         try {
             await changePasswordInDatabase(newPassword);
             setMessage("Password changed successfully! Please log in again.");
             setMessageType('success');
             setShowModal(true);
-    
+
             setUserData((prevState) => ({ ...prevState, password: newPassword }));
             localStorage.setItem('userData', JSON.stringify({ ...userData, password: newPassword }));
-    
+
             localStorage.clear();
             setTimeout(() => navigate('/'), 3000);
         } catch (error) {
@@ -153,36 +161,133 @@ const EditProfile = () => {
             setMessageType('error');
             setShowModal(true);
         }
-    
+
         setCurrentPassword('');
         setNewPassword('');
         setRepeatedPassword('');
     };
-    
+
+    const handleLogout = () => {
+        localStorage.removeItem('userData');
+        navigate('/', { state: { logout: true } });
+    };
+
+    const handleChangeUsername = async (e) => {
+        e.preventDefault();
+        const currentUsername = userData.userName; // Get the current username
+
+        if (!newUsername) {
+            setMessage("Please type your new username.");
+            setMessageType('error');
+            setShowModal(true);
+            return;
+        }
+
+        if (currentUsername === newUsername) {
+            setMessage("New username cannot be the same as the current username.");
+            setMessageType('error');
+            setShowModal(true);
+            return;
+        }
+
+        try {
+            // Assuming changeUsernameInDatabase is defined to handle username change
+            await changeUsernameInDatabase(newUsername);
+            setMessage("Username changed successfully! Please log in again.");
+            setMessageType('success');
+            setShowModal(true);
+
+            setUserData((prevState) => ({ ...prevState, userName: newUsername }));
+            localStorage.setItem('userData', JSON.stringify({ ...userData, userName: newUsername }));
+
+            localStorage.clear();
+            setTimeout(() => navigate('/'), 3000);
+        } catch (error) {
+            setMessage(error.message);
+            setMessageType('error');
+            setShowModal(true);
+        }
+
+        setNewUsername(''); // Clear the new username input
+    };
+
+    const changeUsernameInDatabase = async (username) => {
+        // This function should contain logic to send the new username to your API
+        // Example API call can be added here
+
+        const updatedUserData = { ...userData, userName: newUsername };
+
+        try {
+            const response = await fetch(`http://localhost:5169/api/user/updateusername?id=${userData.id}&userName=${newUsername}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                },
+                body: JSON.stringify(updatedUserData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to update username. Error details:', errorData);
+                throw new Error('Failed to update username in the database.');
+            }
+
+            console.log('Username updated successfully');
+        } catch (error) {
+            console.error('Error updating username:', error);
+            alert('Could not update username. Please try again later.');
+        }
+    };
+
+
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
             <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
                 <div className="logo ms-3" onClick={() => navigate('/main')} style={{ cursor: 'pointer' }}>
-                    <img src="/path/to/logo.png" alt="Logo" style={{ height: '60px' }} />
+                    <img src="/baltaslogo.png" alt="Logo" style={{ height: '60px' }} />
+                </div>
+
+                <div className="dropdown me-3">
+                    <button
+                        className="btn btn-success btn-lg dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        My Account
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/profile', { state: { userData } })}>
+                                Edit Profile
+                            </button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/my-portfolio', { state: { userData } })}>
+                                My Portfolio
+                            </button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/purchases')}>Purchases History</button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/sales')}>Sales History</button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item text-danger" onClick={handleLogout}>Sign Out</button>
+                        </li>
+                    </ul>
                 </div>
             </header>
+
             <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
                 <div className="card shadow-lg" style={{ width: '400px' }}>
                     <div className="card-body">
                         <h2 className="text-center mb-4">Edit Profile</h2>
 
                         <form onSubmit={handleSave}>
-                            <div className="mb-3">
-                                <label htmlFor="username" className="form-label">Username</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="username"
-                                    value={userData.userName}
-                                    onChange={(e) => setUserData({ ...userData, userName: e.target.value })}
-                                    required
-                                />
-                            </div>
                             <div className="mb-3">
                                 <label htmlFor="firstName" className="form-label">First Name</label>
                                 <input
@@ -228,6 +333,22 @@ const EditProfile = () => {
                                 />
                             </div>
                             <button type="submit" className="btn btn-warning w-100 mb-3">Save Changes</button>
+                        </form>
+
+                        <h3 className="text-center mt-4">Change Username</h3>
+                        <form onSubmit={handleChangeUsername}>
+                            <div className="mb-3">
+                                <label htmlFor="newUsername" className="form-label">New Username</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="newUsername"
+                                    value={newUsername} // Bind to newUsername state
+                                    onChange={(e) => setNewUsername(e.target.value)} // Update newUsername state
+                                    required
+                                />
+                            </div>
+                            <button type="submit" className="btn btn-warning w-100 mb-3">Change Username</button>
                         </form>
 
                         <h3 className="text-center mt-4">Change Password</h3>

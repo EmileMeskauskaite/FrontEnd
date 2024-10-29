@@ -36,18 +36,18 @@ const MainPage = () => {
 
     // Fetch user profile and market data on component mount
     useEffect(() => {
-        if (userData && userData.userName) {
-            fetchUserProfile(userData.userName); // Use userName instead of username
+        if (userData && userData.id) {
+            fetchUserProfile(userData.id); 
         } else {
-            console.error("Username is undefined, cannot fetch user profile.");
+            console.error("id is undefined, cannot fetch user profile.");
         }
         fetchMarketData(); // Fetch market data independently
     }, [userData]);
 
     // Adjusted fetchUserProfile to use POST
-    const fetchUserProfile = async (userName) => {
+    const fetchUserProfile = async (id) => {
         try {
-            const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?userName=${userName}`, {
+            const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?id=${userData.id}`, {
                 method: 'POST', // Changed to POST
                 headers: {
                     'Content-Type': 'application/json',

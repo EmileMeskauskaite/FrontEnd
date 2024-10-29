@@ -36,7 +36,7 @@ const MyPortfolio = () => {
 
     const fetchUserProfile = async (username) => {
         try {
-            const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?userName=${username}`, {
+            const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?id=${userData.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ const MyPortfolio = () => {
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                         <li>
-                            <button className="dropdown-item" onClick={() => navigate('/edit-profile', { state: { userData } })}>
+                            <button className="dropdown-item" onClick={() => navigate('/profile', { state: { userData } })}>
                                 Edit Profile
                             </button>
                         </li>

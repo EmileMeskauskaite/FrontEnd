@@ -14,7 +14,6 @@ const RegisterPage = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
-    const [address, setAddress] = useState('');
     const [error, setError] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
@@ -40,7 +39,7 @@ const RegisterPage = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         
-        if (!username || !email || !password || !repeatPassword || startingMoney === null || !firstName || !lastName || !dateOfBirth || !address) {
+        if (!username || !email || !password || !repeatPassword || startingMoney === null || !firstName || !lastName || !dateOfBirth) {
             setError('Please fill in all fields and select a starting money amount');
             //setShowErrorModal(true);
             return;
@@ -65,12 +64,12 @@ const RegisterPage = () => {
             firstName: firstName,
             lastName: lastName,
             dateOfBirth: dateOfBirth,
-            address: address,
+            address: email,
             balance: startingMoney,
         };
 
         try {
-            const response = await fetch('http://localhost:5169/api/user/createuser', {
+            const response = await fetch('http://localhost:5169/api/user/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,17 +146,6 @@ const RegisterPage = () => {
                                     onChange={(e) => setDateOfBirth(e.target.value)}
                                 />
                             </div>
-                            <div className="mb-3">
-                                <label htmlFor="address" className="form-label text-black">Address</label>
-                                <input
-                                    type="text"
-                                    className="form-control bg-light text-black shadow-sm custom-focus"
-                                    id="address"
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                />
-                            </div>
-
                             <div className="mb-3">
                                 <label htmlFor="email" className="form-label text-black">Email</label>
                                 <input

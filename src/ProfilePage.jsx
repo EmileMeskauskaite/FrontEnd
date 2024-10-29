@@ -5,29 +5,44 @@ import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap is imported
 
 const ProfilePage = () => {
     const navigate = useNavigate();
+    const storedUserData = localStorage.getItem('userData');
+    const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
-    // State to hold user information
-    const [userData, setUserData] = useState({
-        username: '',
-        firstName: '',
-        lastName: '',
-    });
-
-    // Fetch user data from localStorage on component mount
     useEffect(() => {
-        const storedUserData = localStorage.getItem('userData');
-        if (storedUserData) {
-            const parsedUserData = JSON.parse(storedUserData);
-            //console.log("Retrieved user data:", parsedUserData); // Debugging log
-            setUserData({
-                username: parsedUserData.userName || 'N/A', // Map userName to username
-                firstName: parsedUserData.firstName || 'N/A',
-                lastName: parsedUserData.lastName || 'N/A',
-            });
+        if (userData && userData.id) {
+            fetchUserProfile(userData.id); 
         } else {
-            console.error("User data not found in localStorage.");
+            console.error("id is undefined, cannot fetch user profile.");
         }
-    }, []);
+  
+    }, [userData]);
+    const fetchUserProfile = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?id=${userData.id}`, {
+                method: 'POST', // Changed to POST
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json', // Ensure we accept JSON responses
+                },
+                body: JSON.stringify({}), // POST requests typically require a body
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user profile: ${response.status}`);
+            }
+
+            const data = await response.json();
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            alert("Could not fetch user profile. Please try again later.");
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('userData'); // Clear user data from localStorage on logout
+        navigate('/', { state: { logout: true } });
+    };
+
 
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
@@ -38,7 +53,39 @@ const ProfilePage = () => {
                     style={{ cursor: 'pointer' }} // Change cursor to pointer for better UX
                 >
                     {/* Add a logo image or icon here, e.g., */}
-                    <img src="/path/to/logo.png" alt="Logo" style={{ height: '60px' }} />
+                    <img src="/baltaslogo.png" alt="Logo" style={{ height: '60px' }} />
+                </div>
+                <div className="dropdown me-3">
+                    <button
+                        className="btn btn-success btn-lg dropdown-toggle"
+                        type="button"
+                        id="dropdownMenuButton"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        My Account
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/profile', { state: { userData } })}>
+                                Edit Profile
+                            </button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/my-portfolio', { state: { userData } })}>
+                                My Portfolio
+                            </button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/purchases')}>Purchases History</button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item" onClick={() => navigate('/sales')}>Sales History</button>
+                        </li>
+                        <li>
+                            <button className="dropdown-item text-danger" onClick={handleLogout}>Sign Out</button>
+                        </li>
+                    </ul>
                 </div>
             </header>
             <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
@@ -46,7 +93,7 @@ const ProfilePage = () => {
                     <div className="card-body">
                         <h2 className="text-center mb-4">Profile Information</h2>
                         <div className="mb-3">
-                            <strong>Username:</strong> <span>{userData.username}</span>
+                            <strong>Username:</strong> <span>{userData.userName}</span>
                         </div>
                         <div className="mb-3">
                             <strong>First Name:</strong> <span>{userData.firstName}</span>

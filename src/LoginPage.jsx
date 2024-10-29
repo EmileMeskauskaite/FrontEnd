@@ -37,34 +37,11 @@ const LoginPage = () => {
             if (response.ok) {
                 const userData = await response.json();
 
-                const balanceResponse = await fetch('http://localhost:5169/api/user/updateusercredentials', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userName: userData.userName,
-                        password,
-                        firstName: userData.firstName,
-                        lastName: userData.lastName,
-                        dateOfBirth: userData.dateOfBirth,
-                        address: userData.address,
-                        balance: 0,
-                    }),
-                });
+                // Store user data, including ID, in localStorage
+                localStorage.setItem('userData', JSON.stringify(userData));
 
-                if (balanceResponse.ok) {
-                    const balanceData = await balanceResponse.json();
-                    const userBalance = balanceData.balance;
-
-                    // Store user data with balance in localStorage
-                    const fullUserData = { ...userData, balance: userBalance };
-                    localStorage.setItem('userData', JSON.stringify(fullUserData));
-
-                    // Navigate to the main page
-                    navigate('/main');
-                } else {
-                    const balanceErrorData = await balanceResponse.json();
-                    setErrorMessage(balanceErrorData.message || 'Failed to fetch user balance.');
-                }
+                // Navigate to the main page
+                navigate('/main');
             } else {
                 const errorData = await response.json();
                 setErrorMessage(
@@ -77,7 +54,7 @@ const LoginPage = () => {
             setErrorMessage(
                 error instanceof TypeError
                     ? 'Network error. Please check your connection and try again.'
-                    : 'Incorrect username or password.'
+                    : 'An unexpected error occurred. Please try again later.'
             );
         }
     };
