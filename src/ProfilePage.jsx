@@ -42,6 +42,16 @@ const ProfilePage = () => {
         }
     };
 
+    // Convert numerical difficulty to text labels
+    const getDifficultyLabel = (level) => {
+        switch (level) {
+            case 0: return 'Easy';
+            case 1: return 'Normal';
+            case 2: return 'Hard';
+            default: return 'Unknown';
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('userData');
         navigate('/', { state: { logout: true } });
@@ -90,7 +100,7 @@ const ProfilePage = () => {
                             <strong>Last Name:</strong> <span>{userData.lastName}</span>
                         </div>
                         <div className="mb-3">
-                            <strong>Difficulty:</strong> <span>{difficulty !== null ? difficulty : 'Loading...'}</span>
+                            <strong>Difficulty:</strong> <span>{difficulty !== null ? getDifficultyLabel(difficulty) : 'Loading...'}</span>
                         </div>
                         
                         <button 
