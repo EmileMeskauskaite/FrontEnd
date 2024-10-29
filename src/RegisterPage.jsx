@@ -11,6 +11,7 @@ const RegisterPage = () => {
     const [password, setPassword] = useState('');
     const [repeatPassword, setRepeatPassword] = useState('');
     const [startingMoney, setStartingMoney] = useState(null);
+    const [difficulty, setDifficulty] = useState(null);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
@@ -64,8 +65,9 @@ const RegisterPage = () => {
             firstName: firstName,
             lastName: lastName,
             dateOfBirth: dateOfBirth,
-            address: email,
+            email: email,
             balance: startingMoney,
+            simulationLevel: parseInt(difficulty), // Convert difficulty to number if needed
         };
 
         try {
@@ -181,28 +183,40 @@ const RegisterPage = () => {
 
                             {/* Choose Starting Money Options */}
                             <div className="mb-3">
-                                <label className="form-label text-black">Choose Starting Money</label>
+                                <label className="form-label text-black">Choose Starting Money </label>
                                 <div className="button-group">
-                                    <button 
-                                        type="button" 
-                                        className={`custom-btn ${startingMoney === 10000 ? 'selected' : ''}`} 
-                                        onClick={() => setStartingMoney(10000)}
+                                <button 
+                                    type="button" 
+                                    className={`custom-btn ${startingMoney === 10000 ? 'selected' : ''}`} 
+                                    onClick={() => {
+                                        setStartingMoney(10000);
+                                        setDifficulty('0'); // Adjust 'easy' to match the intended difficulty level
+                                        }}
                                     >
-                                        $10,000
+                                        Easy $10,000
                                     </button>
+
                                     <button 
                                         type="button" 
                                         className={`custom-btn ${startingMoney === 5000 ? 'selected' : ''}`} 
-                                        onClick={() => setStartingMoney(5000)}
+                                        onClick={() => {
+                                            setStartingMoney(5000);
+                                            setDifficulty('1');
+                                        }}
                                     >
-                                        $5,000
+                                        Normal $5,000
                                     </button>
                                     <button 
                                         type="button" 
                                         className={`custom-btn ${startingMoney === 1000 ? 'selected' : ''}`} 
-                                        onClick={() => setStartingMoney(1000)}
+                                        onClick={() => {
+                                            
+                                            setStartingMoney(1000);
+                                            setDifficulty('2');
+                                        
+                                        }}
                                     >
-                                        $1,000
+                                        Hard $1,000
                                     </button>
                                 </div>
                             </div>

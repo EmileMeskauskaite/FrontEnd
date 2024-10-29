@@ -47,14 +47,14 @@ const LoginPage = () => {
                 setErrorMessage(
                     response.status === 401
                         ? 'Incorrect username or password.'
-                        : errorData.message || 'An unexpected error occurred. Please try again later.'
+                        : errorData.message || 'Incorrect username or password.'
                 );
             }
         } catch (error) {
             setErrorMessage(
                 error instanceof TypeError
                     ? 'Network error. Please check your connection and try again.'
-                    : 'An unexpected error occurred. Please try again later.'
+                    : 'Incorrect username or password.'
             );
         }
     };

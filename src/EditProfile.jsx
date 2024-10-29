@@ -13,7 +13,7 @@ const EditProfile = () => {
         firstName: '',
         lastName: '',
         dateOfBirth: '',
-        address: '',
+        email: '',
         balance: 0,
     });
     const [currentPassword, setCurrentPassword] = useState('');
@@ -55,7 +55,7 @@ const EditProfile = () => {
             setMessageType('success');
             setShowModal(true);
         } catch (error) {
-            setMessage("Failed to update profile.");
+            setMessage("Provided email is already in use.");
             setMessageType('error');
             setShowModal(true);
         }
@@ -174,51 +174,52 @@ const EditProfile = () => {
 
     const handleChangeUsername = async (e) => {
         e.preventDefault();
-        const currentUsername = userData.userName; // Get the current username
-
+        const currentUsername = userData.userName;
+    
         if (!newUsername) {
             setMessage("Please type your new username.");
             setMessageType('error');
             setShowModal(true);
             return;
         }
-
+    
         if (currentUsername === newUsername) {
             setMessage("New username cannot be the same as the current username.");
             setMessageType('error');
             setShowModal(true);
             return;
         }
-
+    
         try {
-            // Assuming changeUsernameInDatabase is defined to handle username change
-            await changeUsernameInDatabase(newUsername);
-            setMessage("Username changed successfully! Please log in again.");
-            setMessageType('success');
-            setShowModal(true);
-
-            setUserData((prevState) => ({ ...prevState, userName: newUsername }));
-            localStorage.setItem('userData', JSON.stringify({ ...userData, userName: newUsername }));
-
-            localStorage.clear();
-            setTimeout(() => navigate('/'), 3000);
+            const response = await changeUsernameInDatabase(newUsername);
+            
+            if (response.success) { // Assuming the response contains a success flag
+                setMessage("Username changed successfully! Please log in again.");
+                setMessageType('success');
+                setUserData((prevState) => ({ ...prevState, userName: newUsername }));
+                localStorage.setItem('userData', JSON.stringify({ ...userData, userName: newUsername }));
+    
+                localStorage.clear();
+                setTimeout(() => navigate('/'), 3000);
+            } else {
+                setMessage(response.message || "Failed to change username.");
+                setMessageType('error');
+            }
         } catch (error) {
             setMessage(error.message);
             setMessageType('error');
-            setShowModal(true);
+        } finally {
+            setShowModal(true); // Show the modal regardless of success or error
         }
-
+    
         setNewUsername(''); // Clear the new username input
     };
-
+    
     const changeUsernameInDatabase = async (username) => {
-        // This function should contain logic to send the new username to your API
-        // Example API call can be added here
-
-        const updatedUserData = { ...userData, userName: newUsername };
-
+        const updatedUserData = { ...userData, userName: username };
+    
         try {
-            const response = await fetch(`http://localhost:5169/api/user/updateusername?id=${userData.id}&userName=${newUsername}`, {
+            const response = await fetch(`http://localhost:5169/api/user/updateusername?id=${userData.id}&userName=${username}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -226,20 +227,19 @@ const EditProfile = () => {
                 },
                 body: JSON.stringify(updatedUserData),
             });
-
+    
+            const data = await response.json();
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Failed to update username. Error details:', errorData);
-                throw new Error('Failed to update username in the database.');
+                throw new Error(data.message || 'Provided username is already taken. Try another username.');
             }
-
-            console.log('Username updated successfully');
+    
+            return { success: true, message: data.message }; // Return success with message
         } catch (error) {
             console.error('Error updating username:', error);
-            alert('Could not update username. Please try again later.');
+            throw new Error('Provided username is already taken. Try another username.');
         }
     };
-
+    
 
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
@@ -322,13 +322,13 @@ const EditProfile = () => {
                                 />
                             </div>
                             <div className="mb-3">
-                                <label htmlFor="address" className="form-label">Address</label>
+                                <label htmlFor="email" className="form-label">email</label>
                                 <input
                                     type="text"
                                     className="form-control"
-                                    id="address"
-                                    value={userData.address}
-                                    onChange={(e) => setUserData({ ...userData, address: e.target.value })}
+                                    id="email"
+                                    value={userData.email}
+                                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                                     required
                                 />
                             </div>
