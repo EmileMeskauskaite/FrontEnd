@@ -6,6 +6,7 @@ import MainPage from './MainPage';
 import ProfilePage from './ProfilePage';
 import EditProfile from './EditProfile';
 import MyPortfolio from './MyPortfolio';
+import PurchasesPage from './PurchasesPage';
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/edit-profile" element={<EditProfile />} />
                 <Route path="/my-portfolio" element={<MyPortfolio />} />
+                <Route path="/purchases" element={<PurchasesPage />} />
                 
             </Routes>
         </Router>
