@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Placeholder for a graph component (like Chart.js or Recharts)
 const StockGraph = ({ stockData }) => {
     return (
         <div className="stock-graph">
@@ -15,13 +14,12 @@ const StockGraph = ({ stockData }) => {
 const MainPage = () => {
     const navigate = useNavigate();
 
-    // Retrieve user data from localStorage
     const storedUserData = localStorage.getItem('userData');
     const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
     const [wallet, setWallet] = useState({
-        availableFunds: userData?.balance || 0, // Ensure fallback to 0 if balance is undefined
-        totalPortfolioValue: 30000, // Placeholder for total portfolio value
+        availableFunds: userData?.balance || 0, 
+        totalPortfolioValue: 30000, 
     });
 
     const [investments, setInvestments] = useState([
@@ -34,26 +32,24 @@ const MainPage = () => {
     const [visibleCompanies, setVisibleCompanies] = useState(3);
     const [hasMore, setHasMore] = useState(true);
 
-    // Fetch user profile and market data on component mount
     useEffect(() => {
         if (userData && userData.id) {
             fetchUserProfile(userData.id); 
         } else {
             console.error("id is undefined, cannot fetch user profile.");
         }
-        fetchMarketData(); // Fetch market data independently
+        fetchMarketData();
     }, [userData]);
 
-    // Adjusted fetchUserProfile to use POST
     const fetchUserProfile = async (id) => {
-        try {
+    {
             const response = await fetch(`http://localhost:5169/api/userprofile/getuserprofile?id=${userData.id}`, {
-                method: 'POST', // Changed to POST
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'accept': 'application/json', // Ensure we accept JSON responses
+                    'accept': 'application/json', 
                 },
-                body: JSON.stringify({}), // POST requests typically require a body
+                body: JSON.stringify({}), 
             });
 
             if (!response.ok) {
@@ -61,42 +57,84 @@ const MainPage = () => {
             }
 
             const data = await response.json();
-            // Assuming data contains user information and balance
             setWallet((prevWallet) => ({
                 ...prevWallet,
-                availableFunds: data.balance || 0, // Update with the fetched balance
+                availableFunds: data.balance || 0, 
             }));
+    }
+    };
+
+    const fetchMarketData = async () => {
+        try {
+            // Step 1: Fetch the list of all companies
+            const response = await fetch('http://localhost:5169/api/marketdata/getallcompanies');
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Step 2: Transform the initial data and prepare to fetch live prices for each company
+                const fullMarketDataPromises = data.map(async (company) => {
+                    try {
+                        // Fetch live price data for each company using its id
+                        const priceResponse = await fetch(`http://localhost:5169/api/marketdata/marketdata/getcompanylivepricedistinct?symbols=${company.id}`);
+                        
+                        if (priceResponse.ok) {
+                            const priceData = await priceResponse.json();
+                            
+                            // Assume the latest price is the first entry, or adjust as needed
+                            const latestPrice = priceData.length > 0 ? priceData[0].price : 'N/A';
+                            
+                            // Return the company data combined with the latest price and price history
+                            return {
+                                companyName: company.name,
+                                stockIndex: latestPrice, // Latest live price
+                                stockData: priceData     // Full price history data
+                            };
+                        } else {
+                            console.error(`Failed to fetch live price data for ${company.name}`);
+                            return {
+                                companyName: company.name,
+                                stockIndex: 'N/A',  // Default if live price fetch fails
+                                stockData: []
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching live price for ${company.name}:`, error);
+                        return {
+                            companyName: company.name,
+                            stockIndex: 'N/A',
+                            stockData: []
+                        };
+                    }
+                });
+    
+                // Step 3: Wait for all live price data fetches to complete
+                const fullMarketData = await Promise.all(fullMarketDataPromises);
+    
+                // Update state with the combined data, limited by `visibleCompanies`
+                setMarketData(fullMarketData.slice(0, visibleCompanies));
+                setHasMore(fullMarketData.length > visibleCompanies);
+            } else if (response.status === 204) {
+                // Handle case with no content
+                setMarketData([]);
+                setHasMore(false);
+            } else {
+                console.error("Failed to fetch market data. Status:", response.status);
+            }
         } catch (error) {
-            console.error("Error fetching user profile:", error);
-            alert("Could not fetch user profile. Please try again later.");
+            console.error("Error fetching market data:", error);
         }
     };
-
-    const fetchMarketData = () => {
-        // Mock API call for market data (replace with actual API)
-        const initialMarketData = [
-            { companyName: 'Apple Inc.', stockIndex: '+2.5%', stockData: [] },
-            { companyName: 'Tesla Inc.', stockIndex: '-1.8%', stockData: [] },
-            { companyName: 'Amazon.com, Inc.', stockIndex: '+1.2%', stockData: [] },
-            { companyName: 'Microsoft Corp.', stockIndex: '+3.1%', stockData: [] },
-            { companyName: 'Netflix Inc.', stockIndex: '-0.7%', stockData: [] },
-        ];
-
-        // Simulate delay from API
-        setTimeout(() => {
-            setMarketData(initialMarketData.slice(0, visibleCompanies));
-            setHasMore(initialMarketData.length > visibleCompanies);
-        }, 500);
-    };
+    
 
     const loadMoreCompanies = () => {
-        const nextVisible = visibleCompanies + 3; // Load 3 more companies each time
+        const nextVisible = visibleCompanies + 9;
         setVisibleCompanies(nextVisible);
-        fetchMarketData(); // Fetch and update visible companies
+        fetchMarketData();
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('userData'); // Clear user data from localStorage on logout
+        localStorage.removeItem('userData'); 
         navigate('/', { state: { logout: true } });
     };
 
