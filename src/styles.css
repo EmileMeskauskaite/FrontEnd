@@ -165,3 +165,7 @@ body, html {
     max-height: 95vh; /* Allow for a small margin */
     overflow-y: auto; /* Ensure the card itself can scroll if content overflows */
 }
+.stock-green{
+
+    color:#00b26e;
+}
