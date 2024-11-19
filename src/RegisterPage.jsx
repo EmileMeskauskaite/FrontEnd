@@ -67,7 +67,7 @@ const RegisterPage = () => {
             dateOfBirth: dateOfBirth,
             email: email,
             balance: startingMoney,
-            simulationLevel: parseInt(difficulty), // Convert difficulty to number if needed
+            simulationLevel: parseInt(difficulty), 
         };
 
         try {
@@ -87,14 +87,12 @@ const RegisterPage = () => {
             const registeredUser = await response.json();
             setShowSuccessModal(true);
 
-            // Navigate to home page after closing modal
             setTimeout(() => {
                 setShowSuccessModal(false);
                 navigate('/');
             }, 5000);
         } catch (err) {
             setError(err.message || 'Failed to register');
-            //setShowErrorModal(true);
         }
     };
 

@@ -135,17 +135,15 @@ const MainPage = () => {
         const intervalId = setInterval(() => {
             setMarketData((prevData) =>
                 prevData.map((stock) => {
-                    if (Math.random() <= 0.4) { // 40% chance to change price
-                        const change = (Math.random() * 0.2 - 0.1).toFixed(2); // Random change between -0.10 and +0.10
+                    if (Math.random() <= 0.4) { 
+                        const change = (Math.random() * 0.2 - 0.1).toFixed(2); 
                         const newPrice = Math.max(0, parseFloat(stock.stockIndex) + parseFloat(change));
 
-                        // Set the flash state
                         setFlashState((prevFlashState) => ({
                             ...prevFlashState,
                             [stock.id]: parseFloat(change) > 0 ? 'up' : 'down',
                         }));
 
-                        // Reset flash state after 1 second
                         setTimeout(() => {
                             setFlashState((prevFlashState) => ({
                                 ...prevFlashState,
@@ -155,12 +153,12 @@ const MainPage = () => {
 
                         return { ...stock, stockIndex: newPrice.toFixed(2) };
                     }
-                    return stock; // No change
+                    return stock; 
                 })
             );
-        }, Math.random() * (10000 - 5000) + 5000); // Random interval 5-10 seconds
+        }, Math.random() * (10000 - 5000) + 5000); 
 
-        return () => clearInterval(intervalId); // Cleanup on unmount
+        return () => clearInterval(intervalId); 
     }, []);
 
     const loadMoreCompanies = () => {

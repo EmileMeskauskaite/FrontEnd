@@ -7,16 +7,16 @@ const ProfilePage = () => {
     const navigate = useNavigate();
     const storedUserData = localStorage.getItem('userData');
     const userData = storedUserData ? JSON.parse(storedUserData) : null;
-    const [difficulty, setDifficulty] = useState(null); // useState to track difficulty level
+
+    const [difficultylevel, setDifficultylevel] = useState(null); // Use state for difficulty level
 
     useEffect(() => {
         if (userData && userData.id) {
             fetchUserProfile(userData.id); 
-            console.log(userData);
+            //console.log(userData);
         } else {
             console.error("id is undefined, cannot fetch user profile.");
         }
-  
     }, [userData]);
 
     const fetchUserProfile = async (id) => {
@@ -25,30 +25,23 @@ const ProfilePage = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'accept': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({}),
             });
-
+    
             if (!response.ok) {
                 throw new Error(`Failed to fetch user profile: ${response.status}`);
             }
-
+            
             const data = await response.json();
-            setDifficulty(data.simulationLevel); // Set difficulty using setDifficulty
+            //console.log(data.simulationLevel);
+    
+            // Update the state with the difficulty level
+            setDifficultylevel(data.simulationLevel);
         } catch (error) {
             console.error("Error fetching user profile:", error);
             alert("Could not fetch user profile. Please try again later.");
-        }
-    };
-
-    // Convert numerical difficulty to text labels
-    const getDifficultyLabel = (level) => {
-        switch (level) {
-            case 0: return 'Easy';
-            case 1: return 'Normal';
-            case 2: return 'Hard';
-            default: return 'Unknown';
         }
     };
 
@@ -91,16 +84,16 @@ const ProfilePage = () => {
                     <div className="card-body">
                         <h2 className="text-center mb-4">Profile Information</h2>
                         <div className="mb-3">
-                            <strong>Username:</strong> <span>{userData.userName}</span>
+                            <strong>Username:</strong> <span>{userData?.userName}</span>
                         </div>
                         <div className="mb-3">
-                            <strong>First Name:</strong> <span>{userData.firstName}</span>
+                            <strong>First Name:</strong> <span>{userData?.firstName}</span>
                         </div>
                         <div className="mb-3">
-                            <strong>Last Name:</strong> <span>{userData.lastName}</span>
+                            <strong>Last Name:</strong> <span>{userData?.lastName}</span>
                         </div>
                         <div className="mb-3">
-                            <strong>Difficulty:</strong> <span>{difficulty !== null ? getDifficultyLabel(difficulty) : 'Loading...'}</span>
+                            <strong>Difficulty:</strong> <span>{difficultylevel !== null ? difficultylevel : 'Loading...'}</span>
                         </div>
                         
                         <button 
