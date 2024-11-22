@@ -15,21 +15,22 @@ const MainPage = () => {
     const storedUserData = localStorage.getItem('userData');
     const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
-    const [wallet, setWallet] = useState({
-        availableFunds: userData?.balance || 0,
-        totalPortfolioValue: 30000,
-    });
+    const totalPortfolioValue = userData?.userPortfolioStocks
+    ? userData.userPortfolioStocks.reduce((sum, stock) => sum + stock.currentTotalValue, 0)
+    : 0;
 
-    const [investments, setInvestments] = useState([
-        { companyName: 'Apple Inc.', shares: 10, value: 1500 },
-        { companyName: 'Tesla Inc.', shares: 5, value: 3000 },
-        { companyName: 'Amazon.com, Inc.', shares: 2, value: 4000 },
-    ]);
+const [wallet, setWallet] = useState({
+    availableFunds: userData?.balance || 0,
+    totalPortfolioValue, // Use the precomputed value here
+});
+
 
     const [marketData, setMarketData] = useState([]);
     const [flashState, setFlashState] = useState({});
     const [visibleCompanies, setVisibleCompanies] = useState(3);
     const [hasMore, setHasMore] = useState(true);
+
+
 
     useEffect(() => {
         if (userData?.id) {
@@ -49,7 +50,6 @@ const MainPage = () => {
                         'Content-Type': 'application/json',
                         accept: 'application/json',
                     },
-                    body: JSON.stringify({}),
                 }
             );
 
@@ -58,15 +58,23 @@ const MainPage = () => {
             }
 
             const data = await response.json();
-            setWallet((prevWallet) => ({
-                ...prevWallet,
+
+            // Calculate the total portfolio value by summing up all currentTotalValue
+            const totalPortfolioValue = data.userPortfolioStocks
+                ? data.userPortfolioStocks.reduce(
+                      (sum, stock) => sum + (stock.currentTotalValue || 0),
+                      0
+                  )
+                : 0;
+
+            setWallet({
                 availableFunds: data.balance || 0,
-            }));
+                totalPortfolioValue,
+            });
         } catch (error) {
             console.error("Error fetching user profile:", error);
         }
     };
-
     const fetchMarketData = async () => {
         try {
             const response = await fetch(
@@ -174,13 +182,15 @@ const MainPage = () => {
 
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
-            <header
-                className="custom-header d-flex justify-content-between align-items-center shadow-sm"
-                style={{ height: '80px' }}
-            >
-                <h1 className="h4 ms-3 mb-0">
-                    Welcome, {userData ? `${userData.firstName} ${userData.lastName}` : 'User'}!
+            <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
+            <div 
+                className="logo ms-3" 
+                onClick={() => navigate('/main', { state: { userData } })} // Pass userData when navigating to main page
+            />
+                <h1 className="h2 ms-3 mb-0 text-white">
+                    Welcome, {userData ? `${userData.firstName}` : 'User'}!
                 </h1>
+
                 <div className="dropdown">
                     <button
                         className="btn btn-success btn-lg me-4 dropdown-toggle"
@@ -214,19 +224,12 @@ const MainPage = () => {
                         <li>
                             <button
                                 className="dropdown-item"
-                                onClick={() => navigate('/purchases')}
+                                onClick={() => navigate('/transactions', { state: { userData } })}
                             >
-                                Purchases History
+                                My Transactions
                             </button>
                         </li>
-                        <li>
-                            <button
-                                className="dropdown-item"
-                                onClick={() => navigate('/sales')}
-                            >
-                                Sales History
-                            </button>
-                        </li>
+
                         <li>
                             <button
                                 className="dropdown-item text-danger"
@@ -241,28 +244,29 @@ const MainPage = () => {
 
             <main className="container py-5">
                 <section className="mb-5">
-                    <h2 className="text-center mb-4">Your Wallet & Portfolio Overview</h2>
+                    <h3 className="text-center mb-4">Wallet & Portfolio Overview</h3>
                     <div className="row">
                         <div className="col-md-6">
-                            <div className="card text-white bg-success mb-3 shadow-lg">
+                            <div className="card text-white semi-transparent-card mb-3 shadow-lg">
                                 <div className="card-header">Money Left in Wallet</div>
                                 <div className="card-body">
                                     <h3 className="card-title">
                                         ${wallet.availableFunds.toFixed(2)}
                                     </h3>
-                                    <p className="card-text">Your current available funds</p>
+                                    <p className="card-text">My current available funds</p>
                                 </div>
                             </div>
                         </div>
 
+
                         <div className="col-md-6">
-                            <div className="card text-white bg-warning mb-3 shadow-lg">
+                            <div className="card text-white custom-peach-color mb-3 shadow-lg">
                                 <div className="card-header">Current Portfolio Value</div>
                                 <div className="card-body">
                                     <h3 className="card-title">
                                         ${wallet.totalPortfolioValue.toFixed(2)}
                                     </h3>
-                                    <p className="card-text">Your current portfolio worth</p>
+                                    <p className="card-text">My current portfolio worth</p>
                                 </div>
                             </div>
                         </div>
@@ -270,57 +274,43 @@ const MainPage = () => {
                 </section>
 
                 <section className="mb-5">
-                    <h2 className="text-center mb-4">Your Investments</h2>
-                    <div className="row">
-                        {investments.map((investment, index) => (
-                            <div key={index} className="col-md-4 mb-3">
-                                <div className="card shadow-sm">
-                                    <div className="card-body">
-                                        <h5 className="card-title">{investment.companyName}</h5>
-                                        <p className="card-text">Shares: {investment.shares}</p>
-                                        <p className="card-text">
-                                            Total Value: ${investment.value.toFixed(2)}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+    <h3 className="text-center mb-4">Market Trends</h3>
+    <div className="row">
+        {marketData.map((stock, index) => (
+            <div key={index} className="col-md-4 mb-3">
+                <div
+                    className="card shadow-sm"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => navigate(`/stock/${stock.id}`, { state: { stock } })}
+                >
+                    <div className="card-body">
+                        <h5 className="card-title">{stock.companyName}</h5>
+                        <p
+                            className={`card-text ${
+                                flashState[stock.id] === 'up'
+                                    ? 'fw-bold stock-green'
+                                    : flashState[stock.id] === 'down'
+                                    ? 'fw-bold stock-red'
+                                    : ''
+                            }`}
+                        >
+                            Stock price: ${stock.stockIndex}
+                        </p>
+                        <StockGraph stockData={stock} />
                     </div>
-                </section>
+                </div>
+            </div>
+        ))}
+    </div>
+    {hasMore && (
+        <div className="text-center mt-4">
+            <button className="btn custom-btn mb-3" onClick={loadMoreCompanies}>
+                Load More Companies
+            </button>
+        </div>
+    )}
+</section>
 
-                <section className="mb-5">
-                    <h2 className="text-center mb-4">Market Trends</h2>
-                    <div className="row">
-                        {marketData.map((stock, index) => (
-                            <div key={index} className="col-md-4 mb-3">
-                                <div className="card shadow-sm">
-                                    <div className="card-body">
-                                        <h5 className="card-title">{stock.companyName}</h5>
-                                        <p
-                                            className={`card-text ${
-                                                flashState[stock.id] === 'up'
-                                                    ? 'text-danger fw-bold'
-                                                    : flashState[stock.id] === 'down'
-                                                    ? 'fw-bold stock-green'
-                                                    : ''
-                                            }`}
-                                        >
-                                            Stock Index: {stock.stockIndex}
-                                        </p>
-                                        <StockGraph stockData={stock} />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    {hasMore && (
-                        <div className="text-center mt-4">
-                            <button className="btn btn-primary" onClick={loadMoreCompanies}>
-                                Load More Companies
-                            </button>
-                        </div>
-                    )}
-                </section>
             </main>
         </div>
     );

@@ -1,4 +1,6 @@
 import React from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Already included
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Add this line
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
@@ -6,7 +8,8 @@ import MainPage from './MainPage';
 import ProfilePage from './ProfilePage';
 import EditProfile from './EditProfile';
 import MyPortfolio from './MyPortfolio';
-import PurchasesPage from './PurchasesPage';
+import StockPage from './StockPage';
+import TransactionsPage from './TransactionsPage';
 
 function App() {
     return (
@@ -19,8 +22,8 @@ function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/edit-profile" element={<EditProfile />} />
                 <Route path="/my-portfolio" element={<MyPortfolio />} />
-                <Route path="/purchases" element={<PurchasesPage />} />
-                
+                <Route path="/stock/:id" element={<StockPage />} />
+                <Route path="/transactions" element={<TransactionsPage/>} />
             </Routes>
         </Router>
     );

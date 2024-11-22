@@ -60,7 +60,41 @@ h2 {
 }
 
 .custom-btn {
-    background-color: #00b26e; /* Custom background color */
+    background-color: #009966; /* Custom background color */
+    color: #ffffff; /* White text */
+    border: none; /* No border */
+    border-radius: 30px; /* Rounded corners */
+    padding: 10px 20px; /* Padding for larger button size */
+    font-size: 1rem; /* Font size */
+    font-weight: bold; /* Make text bold */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: all 0.3s ease; /* Smooth transition for hover and focus effects */
+    text-align: center; /* Center the text */
+    display: inline-block; /* Prevent text wrapping issues */
+}
+
+.custom-btn:hover {
+    background-color: #009966a4; /* Lighter green on hover */
+    color: #ffffff;
+}
+
+.custom-btn:focus {
+    outline: none; /* Remove default focus outline */
+    box-shadow: none; /* Remove any shadow applied by the browser */
+    background-color: #009966; /* Keep the same background as the default state */
+    color: #ffffff; /* Keep the same text color */
+}
+
+/* Selected state for the button */
+.custom-btn.selected {
+    background-color: #006644; /* Darker green for selected button */
+    color: #ffffff; /* White text for readability */
+}
+
+
+
+.custom-btn-danger {
+    background-color: #dc3545; /* Red color for danger button */
     color: #ffffff; /* White text */
     border: none; /* No border */
     border-radius: 30px; /* Rounded corners */
@@ -72,22 +106,13 @@ h2 {
     text-align: center; /* Center the text */
     flex: 1; /* Allow buttons to grow equally */
 }
-
-.custom-btn:hover {
-    background-color: #00e88f; /* Lighter green on hover */
+.custom-btn-danger:hover {
+    background-color: #dc3545a4; /* Lighter red on hover */
 }
 
-/* Selected state for the starting money buttons */
-.custom-btn.selected {
-    background-color: #006644; /* Darker green for selected button */
-    color: #ffffff; /* White text for readability */
-}
-
-/* Focus state for inputs */
-.custom-focus:focus {
+.custom-btn-danger:focus {
     border-color: black !important; /* Changes border color to black */
 }
-
 /* Background styles */
 body, html {
     height: 100%;
@@ -106,7 +131,6 @@ body, html {
     align-items: center;
 }
 
-/* Dropdown styles */
 .dropdown-menu {
     min-width: 200px; /* Set a minimum width for dropdown */
     border-radius: 0.5rem; /* Rounded corners for the dropdown */
@@ -138,7 +162,7 @@ body, html {
 
 /* Header styles */
 .custom-header {
-    background-color: #00b26e; /* Custom green background */
+    background-color: #009966; /* Custom green background */
     height: 80px; /* Ensure it matches the height in inline style */
 }
 
@@ -167,5 +191,63 @@ body, html {
 }
 .stock-green{
 
-    color:#00b26e;
+    color:#43d49d;
+    font-weight: bold;
+
+}
+.stock-red{
+    color:#ff8490;
+    font-weight: bold;
+}
+/* Semi-transparent card styling */
+.semi-transparent-card {
+    background-color: #006666; /* Green color with 80% transparency */
+    backdrop-filter: blur(5px); /* Adds a subtle blur effect */
+    color: rgb(255, 255, 255); /* Ensures text is readable on the semi-transparent background */
+    border-radius: 8px; /* Adds rounded corners for a polished look */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Adds a shadow for depth */
+}
+
+/* Card header styling */
+.centered-card-header {
+    height: 100px; /* Fixed height for consistent design */
+    display: flex; /* Flex container for centering content */
+    justify-content: center; /* Horizontally center the text */
+    align-items: center; /* Vertically center the text */
+    text-align: center; /* Ensures text alignment for multi-line content */
+    font-weight: bold; /* Makes the header text bold */
+    font-size: 1.5rem; /* Adjusts font size for visibility */
+}
+/* Custom table styling with #006666 */
+/* Custom table styling with #006666 */
+.custom-table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed; /* Ensures consistent column widths */
+}
+
+.custom-table th {
+    background-color: #006666;
+    color: white;
+    text-align: left;
+    padding: 12px; /* Uniform padding */
+    border: 1px solid #006666; /* Consistent border */
+}
+
+.custom-table td {
+    border: 1px solid #006666; /* Consistent border */
+    padding: 12px; /* Uniform padding to match th */
+    vertical-align: middle; /* Ensures consistent vertical alignment */
+}
+
+.custom-table tr:nth-child(even) {
+    background-color: #e6f7f7; /* Light turquoise for even rows */
+}
+
+.custom-table tr:hover {
+    background-color: #b3e0e0; /* Hover color */
+}
+.custom-peach-color {
+    background-color: rgb(219, 144, 15);
+
 }

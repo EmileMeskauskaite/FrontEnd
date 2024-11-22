@@ -53,13 +53,13 @@ const ProfilePage = () => {
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
             <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
-                <div 
-                    className="logo ms-3" 
-                    onClick={() => navigate('/main')} 
-                    style={{ cursor: 'pointer' }}
-                >
-                    <img src="/baltaslogo.png" alt="Logo" style={{ height: '60px' }} />
-                </div>
+            <div 
+                className="logo ms-3" 
+                onClick={() => navigate('/main', { state: { userData } })} // Pass userData when navigating to main page
+            />
+                <h1 className="h2 ms-3 mb-0 text-white">
+                    My Profile
+                </h1>
                 <div className="dropdown me-3">
                     <button
                         className="btn btn-success btn-lg dropdown-toggle"
@@ -73,8 +73,7 @@ const ProfilePage = () => {
                     <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                         <li><button className="dropdown-item" onClick={() => navigate('/profile', { state: { userData } })}>Edit Profile</button></li>
                         <li><button className="dropdown-item" onClick={() => navigate('/my-portfolio', { state: { userData } })}>My Portfolio</button></li>
-                        <li><button className="dropdown-item" onClick={() => navigate('/purchases')}>Purchases History</button></li>
-                        <li><button className="dropdown-item" onClick={() => navigate('/sales')}>Sales History</button></li>
+                        <li><button className="dropdown-item" onClick={() => navigate('/transactions', { state: { userData } })}>My Transactions</button></li>
                         <li><button className="dropdown-item text-danger" onClick={handleLogout}>Sign Out</button></li>
                     </ul>
                 </div>

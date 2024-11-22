@@ -244,9 +244,13 @@ const EditProfile = () => {
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
             <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
-                <div className="logo ms-3" onClick={() => navigate('/main')} style={{ cursor: 'pointer' }}>
-                    <img src="/baltaslogo.png" alt="Logo" style={{ height: '60px' }} />
-                </div>
+            <div 
+                className="logo ms-3" 
+                onClick={() => navigate('/main', { state: { userData } })} // Pass userData when navigating to main page
+            />
+                <h1 className="h2 ms-3 mb-0 text-white">
+                    Edit My Profile
+                </h1>
 
                 <div className="dropdown me-3">
                     <button
@@ -270,10 +274,7 @@ const EditProfile = () => {
                             </button>
                         </li>
                         <li>
-                            <button className="dropdown-item" onClick={() => navigate('/purchases')}>Purchases History</button>
-                        </li>
-                        <li>
-                            <button className="dropdown-item" onClick={() => navigate('/sales')}>Sales History</button>
+                            <button className="dropdown-item" onClick={() => navigate('/transactions', { state: { userData } })}>My Transactions</button>
                         </li>
                         <li>
                             <button className="dropdown-item text-danger" onClick={handleLogout}>Sign Out</button>
@@ -285,7 +286,7 @@ const EditProfile = () => {
             <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
                 <div className="card shadow-lg" style={{ width: '400px' }}>
                     <div className="card-body">
-                        <h2 className="text-center mb-4">Edit Profile</h2>
+                        <h3 className="text-center mb-4">My Information</h3>
 
                         <form onSubmit={handleSave}>
                             <div className="mb-3">
