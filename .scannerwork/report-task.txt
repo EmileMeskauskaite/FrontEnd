@@ -1,0 +1,6 @@
+projectKey=YouTrade_FE
+serverUrl=http://localhost:9000
+serverVersion=10.7.0.96327
+dashboardUrl=http://localhost:9000/dashboard?id=YouTrade_FE
+ceTaskId=9e6ccc88-f137-4219-8786-3ce753ceb46c
+ceTaskUrl=http://localhost:9000/api/ce/task?id=9e6ccc88-f137-4219-8786-3ce753ceb46c

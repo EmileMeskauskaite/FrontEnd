@@ -281,24 +281,29 @@ const [wallet, setWallet] = useState({
                 <div
                     className="card shadow-sm"
                     style={{ cursor: 'pointer' }}
-                    onClick={() => navigate(`/stock/${stock.id}`, { state: { stock } })}
-                >
-                    <div className="card-body">
-                        <h5 className="card-title">{stock.companyName}</h5>
-                        <p
-                            className={`card-text ${
-                                flashState[stock.id] === 'up'
-                                    ? 'fw-bold stock-green'
-                                    : flashState[stock.id] === 'down'
-                                    ? 'fw-bold stock-red'
-                                    : ''
-                            }`}
-                        >
-                            Stock price: ${stock.stockIndex}
-                        </p>
-                        <StockGraph stockData={stock} />
-                    </div>
-                </div>
+                    onClick={() =>
+                        navigate(`/stock/${stock.id}`, {
+                            state: { stockName: stock.id, companyName: stock.companyName },
+                        })
+                    }
+>
+                <div className="card-body">
+        <h5 className="card-title">{stock.companyName}</h5>
+        <p
+            className={`card-text ${
+                flashState[stock.id] === 'up'
+                    ? 'fw-bold stock-green'
+                    : flashState[stock.id] === 'down'
+                    ? 'fw-bold stock-red'
+                    : ''
+            }`}
+        >
+            Stock price: ${stock.stockIndex}
+        </p>
+        <StockGraph stockData={stock} />
+    </div>
+</div>
+
             </div>
         ))}
     </div>

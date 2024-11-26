@@ -175,44 +175,45 @@ const MyPortfolio = () => {
                     <div className="alert alert-danger text-center">{error}</div>
                 ) : portfolioStocks.length > 0 ? (
                     <div className="row">
-                        {portfolioStocks.map((stock) => (
-                            <div
-                            key={stock.id}
-                            className="col-md-4 mb-4"
-                            onClick={() => navigate(`/stock/${stock.company.id}`, { state: { stock } })}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className="card shadow-lg">
-                                <div className="card-header custom-peach-color text-white">
-                                    <h5 className="card-title mb-0">
-                                        {stock.company?.name || 'Unknown Company'}
-                                    </h5>
-                                </div>
-                                <div className="card-body">
-                                    <p className="card-text">
-                                        <strong>Quantity:</strong> {stock.quantity}
-                                    </p>
-                                    <p className="card-text">
-                                        <strong>Total Base Value:</strong> $
-                                        {stock.totalBaseValue.toFixed(2)}
-                                    </p>
-                                    <p className="card-text">
-                                        <strong>Current Total Value:</strong> $
-                                        {stock.currentTotalValue.toFixed(2)}
-                                    </p>
-                                    <p className="card-text">
-                                        <strong>Percentage Change:</strong>{' '}
-                                        {stock.percentageChange.toFixed(2)}%
-                                    </p>
-                                    <p className="card-text">
-                                        <strong>Last Updated:</strong>{' '}
-                                        {new Date(stock.lastUpdated).toLocaleString()}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ))}
+{portfolioStocks.map((stock) => (
+    <div
+        key={stock.id}
+        className="col-md-4 mb-4"
+        style={{ cursor: 'pointer' }}
+        onClick={() =>
+            navigate(`/stock/${stock.company.id}`, {
+                state: { stockName: stock.company.id, companyName: stock.company.name },
+            })
+        }
+    >
+        <div className="card shadow-lg">
+            <div className="card-header custom-peach-color text-white">
+                <h5 className="card-title mb-0">
+                    {stock.company?.name || 'Unknown Company'}
+                </h5>
+            </div>
+                <div className="card-body">
+                    <p className="card-text">
+                        <strong>Quantity:</strong> {stock.quantity}
+                    </p>
+                    <p className="card-text">
+                        <strong>Total Base Value:</strong> $
+                        {stock.totalBaseValue.toFixed(2)}
+                    </p>
+                    <p className="card-text">
+                        <strong>Current Total Value:</strong> $
+                        {stock.currentTotalValue.toFixed(2)}
+                    </p>
+                    <p className="card-text">
+                        <strong>Percentage Change:</strong>{' '}
+                        {stock.percentageChange.toFixed(2)}%
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    ))}
+
                     </div>
                 ) : (
                     <div className="alert alert-info text-center">
