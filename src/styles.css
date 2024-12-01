@@ -255,3 +255,30 @@ body, html {
     color: #ce2929;
 
 }
+
+.restart-profile-buttons {
+    gap: 20px; /* Add more spacing between buttons */
+}
+
+.restart-profile-buttons .btn {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px; /* Adjust text size for consistency */
+    height: 80px; /* Standard height for better visibility */
+    width: 120px; /* Standard width for consistency */
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Add slight shadow for better aesthetics */
+}
+.restart-profile-buttons {
+    gap: 15px; /* Adjust the gap between buttons */
+}
+
+.card-body {
+    padding-bottom: 10px; /* Reduce padding if necessary */
+}
+
+.btn-dark {
+    margin-top: 0 !important; /* Ensure no extra margin at the top */
+}

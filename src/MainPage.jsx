@@ -16,27 +16,23 @@ const MainPage = () => {
     const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
     const totalPortfolioValue = userData?.userPortfolioStocks
-    ? userData.userPortfolioStocks.reduce((sum, stock) => sum + stock.currentTotalValue, 0)
-    : 0;
+        ? userData.userPortfolioStocks.reduce((sum, stock) => sum + stock.currentTotalValue, 0)
+        : 0;
 
-const [wallet, setWallet] = useState({
-    availableFunds: userData?.balance || 0,
-    totalPortfolioValue, // Use the precomputed value here
-});
-
+    const [wallet, setWallet] = useState({
+        availableFunds: userData?.balance || 0,
+        totalPortfolioValue,
+    });
 
     const [marketData, setMarketData] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [visibleCompanies, setVisibleCompanies] = useState(6); // Initially load 9 companies
     const [flashState, setFlashState] = useState({});
-    const [visibleCompanies, setVisibleCompanies] = useState(3);
-    const [hasMore, setHasMore] = useState(true);
-
-
 
     useEffect(() => {
         if (userData?.id) {
             fetchUserProfile(userData.id);
-        } else {
-            console.error("User ID is undefined, cannot fetch user profile.");
         }
     }, [userData]);
 
@@ -48,7 +44,7 @@ const [wallet, setWallet] = useState({
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        accept: 'application/json',
+                        Accept: 'application/json',
                     },
                 }
             );
@@ -59,7 +55,6 @@ const [wallet, setWallet] = useState({
 
             const data = await response.json();
 
-            // Calculate the total portfolio value by summing up all currentTotalValue
             const totalPortfolioValue = data.userPortfolioStocks
                 ? data.userPortfolioStocks.reduce(
                       (sum, stock) => sum + (stock.currentTotalValue || 0),
@@ -75,11 +70,10 @@ const [wallet, setWallet] = useState({
             console.error("Error fetching user profile:", error);
         }
     };
+
     const fetchMarketData = async () => {
         try {
-            const response = await fetch(
-                'http://localhost:5169/api/marketdata/getallcompanies'
-            );
+            const response = await fetch('http://localhost:5169/api/marketdata/getallcompanies');
 
             if (response.ok) {
                 const data = await response.json();
@@ -102,9 +96,6 @@ const [wallet, setWallet] = useState({
                                 stockData: priceData,
                             };
                         } else {
-                            console.error(
-                                `Failed to fetch live price data for ${company.name}`
-                            );
                             return {
                                 id: company.id,
                                 companyName: company.name,
@@ -113,7 +104,6 @@ const [wallet, setWallet] = useState({
                             };
                         }
                     } catch (error) {
-                        console.error(`Error fetching live price for ${company.name}:`, error);
                         return {
                             id: company.id,
                             companyName: company.name,
@@ -124,13 +114,8 @@ const [wallet, setWallet] = useState({
                 });
 
                 const fullMarketData = await Promise.all(fullMarketDataPromises);
-                setMarketData(fullMarketData.slice(0, visibleCompanies));
-                setHasMore(fullMarketData.length > visibleCompanies);
-            } else if (response.status === 204) {
-                setMarketData([]);
-                setHasMore(false);
-            } else {
-                console.error("Failed to fetch market data. Status:", response.status);
+                setMarketData(fullMarketData);
+                setFilteredData(fullMarketData.slice(0, visibleCompanies)); // Initially show first 9
             }
         } catch (error) {
             console.error("Error fetching market data:", error);
@@ -139,40 +124,27 @@ const [wallet, setWallet] = useState({
 
     useEffect(() => {
         fetchMarketData();
-
-        const intervalId = setInterval(() => {
-            setMarketData((prevData) =>
-                prevData.map((stock) => {
-                    if (Math.random() <= 0.4) { 
-                        const change = (Math.random() * 0.2 - 0.1).toFixed(2); 
-                        const newPrice = Math.max(0, parseFloat(stock.stockIndex) + parseFloat(change));
-
-                        setFlashState((prevFlashState) => ({
-                            ...prevFlashState,
-                            [stock.id]: parseFloat(change) > 0 ? 'up' : 'down',
-                        }));
-
-                        setTimeout(() => {
-                            setFlashState((prevFlashState) => ({
-                                ...prevFlashState,
-                                [stock.id]: null,
-                            }));
-                        }, 2000);
-
-                        return { ...stock, stockIndex: newPrice.toFixed(2) };
-                    }
-                    return stock; 
-                })
-            );
-        }, Math.random() * (10000 - 5000) + 5000); 
-
-        return () => clearInterval(intervalId); 
     }, []);
 
+    useEffect(() => {
+        if (searchQuery) {
+            const filtered = marketData.filter(
+                (stock) =>
+                    stock.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    stock.id.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredData(filtered);
+        } else {
+            setFilteredData(marketData.slice(0, visibleCompanies)); // Reset to initial data
+        }
+    }, [searchQuery, marketData, visibleCompanies]);
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
     const loadMoreCompanies = () => {
-        const nextVisible = visibleCompanies + 9;
-        setVisibleCompanies(nextVisible);
-        fetchMarketData();
+        setVisibleCompanies((prev) => prev + 9);
     };
 
     const handleLogout = () => {
@@ -183,10 +155,10 @@ const [wallet, setWallet] = useState({
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
             <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
-            <div 
-                className="logo ms-3" 
-                onClick={() => navigate('/main', { state: { userData } })} // Pass userData when navigating to main page
-            />
+                <div
+                    className="logo ms-3"
+                    onClick={() => navigate('/main', { state: { userData } })}
+                />
                 <h1 className="h2 ms-3 mb-0 text-white">
                     Welcome, {userData ? `${userData.firstName}` : 'User'}!
                 </h1>
@@ -201,10 +173,7 @@ const [wallet, setWallet] = useState({
                     >
                         My Account
                     </button>
-                    <ul
-                        className="dropdown-menu dropdown-menu-end"
-                        aria-labelledby="dropdownMenuButton"
-                    >
+                    <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                         <li>
                             <button
                                 className="dropdown-item"
@@ -229,7 +198,6 @@ const [wallet, setWallet] = useState({
                                 My Transactions
                             </button>
                         </li>
-
                         <li>
                             <button
                                 className="dropdown-item text-danger"
@@ -250,22 +218,16 @@ const [wallet, setWallet] = useState({
                             <div className="card text-white semi-transparent-card mb-3 shadow-lg">
                                 <div className="card-header">Money Left in Wallet</div>
                                 <div className="card-body">
-                                    <h3 className="card-title">
-                                        ${wallet.availableFunds.toFixed(2)}
-                                    </h3>
+                                    <h3 className="card-title">${wallet.availableFunds.toFixed(2)}</h3>
                                     <p className="card-text">My current available funds</p>
                                 </div>
                             </div>
                         </div>
-
-
                         <div className="col-md-6">
                             <div className="card text-white custom-peach-color mb-3 shadow-lg">
                                 <div className="card-header">Current Portfolio Value</div>
                                 <div className="card-body">
-                                    <h3 className="card-title">
-                                        ${wallet.totalPortfolioValue.toFixed(2)}
-                                    </h3>
+                                    <h3 className="card-title">${wallet.totalPortfolioValue.toFixed(2)}</h3>
                                     <p className="card-text">My current portfolio worth</p>
                                 </div>
                             </div>
@@ -274,48 +236,58 @@ const [wallet, setWallet] = useState({
                 </section>
 
                 <section className="mb-5">
-    <h3 className="text-center mb-4">Market Trends</h3>
-    <div className="row">
-        {marketData.map((stock, index) => (
-            <div key={index} className="col-md-4 mb-3">
-                <div
-                    className="card shadow-sm"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                        navigate(`/stock/${stock.id}`, {
-                            state: { stockName: stock.id, companyName: stock.companyName },
-                        })
-                    }
->
-                <div className="card-body">
-        <h5 className="card-title">{stock.companyName}</h5>
-        <p
-            className={`card-text ${
-                flashState[stock.id] === 'up'
-                    ? 'fw-bold stock-green'
-                    : flashState[stock.id] === 'down'
-                    ? 'fw-bold stock-red'
-                    : ''
-            }`}
-        >
-            Stock price: ${stock.stockIndex}
-        </p>
-        <StockGraph stockData={stock} />
-    </div>
-</div>
-
-            </div>
-        ))}
-    </div>
-    {hasMore && (
-        <div className="text-center mt-4">
-            <button className="btn custom-btn mb-3" onClick={loadMoreCompanies}>
-                Load More Companies
-            </button>
-        </div>
-    )}
-</section>
-
+                    <h3 className="text-center mb-4">Market Trends</h3>
+                    <div className="row justify-content-center mb-4">
+                        <div className="col-md-8">
+                            <input
+                                type="text"
+                                className="form-control form-control-lg"
+                                placeholder="Search by stock name or symbol..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                            />
+                        </div>
+                    </div>
+                    <div className="row">
+                        {filteredData.map((stock, index) => (
+                            <div key={index} className="col-md-4 mb-3">
+                                <div
+                                    className="card shadow-sm"
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() =>
+                                        navigate(`/stock/${stock.id}`, {
+                                            state: { stockName: stock.id, companyName: stock.companyName },
+                                        })
+                                    }
+                                >
+                                    <div className="card-body">
+                                        <h5 className="card-title">{stock.companyName}</h5>
+                                        <p
+                                            className={`card-text ${
+                                                flashState[stock.id] === 'up'
+                                                    ? 'fw-bold stock-green'
+                                                    : flashState[stock.id] === 'down'
+                                                    ? 'fw-bold stock-red'
+                                                    : ''
+                                            }`}
+                                        >
+                                            Stock price: ${stock.stockIndex}
+                                        </p>
+                                        <StockGraph stockData={stock} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    {/* Conditionally render "Load More Companies" button */}
+                    {!searchQuery && filteredData.length < marketData.length && (
+                        <div className="text-center mt-4">
+                            <button className="btn custom-btn mb-3" onClick={loadMoreCompanies}>
+                                Load More Companies
+                            </button>
+                        </div>
+                    )}
+                </section>
             </main>
         </div>
     );
