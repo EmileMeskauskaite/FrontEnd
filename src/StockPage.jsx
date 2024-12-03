@@ -1,37 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Legend,
+} from 'chart.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles.css';
 
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+
 const StockPage = () => {
     const { stockName } = useParams(); // Get stock ID from the URL
-    const navigate = useNavigate(); // Ensure navigate is defined
-    const location = useLocation(); // For accessing passed state
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const [stockData, setStockData] = useState(null); // Holds stock data
     const [companyName, setCompanyName] = useState(location.state?.companyName || stockName);
-    const [userStocks, setUserStocks] = useState(null); // User's stock information
+    const [userStocks, setUserStocks] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [flashClass, setFlashClass] = useState(''); // Flash effect for price changes
+    const [historicalData, setHistoricalData] = useState([]);
+    const [startDate, setStartDate] = useState(
+        new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]
+    ); // Default: last 7 days
+    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]); // Default: today
+    const [chartData, setChartData] = useState(null);
 
     const storedUserData = localStorage.getItem('userData');
     const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
     useEffect(() => {
         if (location.state?.companyName) {
-            setCompanyName(location.state.companyName); // Update company name if passed via state
+            setCompanyName(location.state.companyName);
         }
-        fetchStockData(stockName); // Fetch stock data using stock ID
-        fetchUserStocks(); // Fetch user's stock information
+        fetchStockData(stockName);
+        fetchUserStocks();
+        fetchHistoricalData();
     }, [stockName]);
-
-    useEffect(() => {
-        if (stockData) {
-            const intervalId = generateStockUpdates();
-            return () => clearInterval(intervalId); // Cleanup on unmount
-        }
-    }, [stockData]);
 
     const fetchStockData = async (symbol) => {
         try {
@@ -39,22 +51,12 @@ const StockPage = () => {
                 `http://localhost:5169/api/marketdata/marketdata/getcompanylivepricedistinct?symbols=${symbol}`
             );
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch stock data: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`Failed to fetch stock data: ${response.status}`);
 
-            const text = await response.text();
-            if (!text) {
-                throw new Error("API response is empty.");
-            }
+            const data = await response.json();
+            if (!data || data.length === 0) throw new Error(`No stock data available for symbol: ${symbol}`);
 
-            const data = JSON.parse(text);
-
-            if (!data || data.length === 0) {
-                throw new Error(`No stock data available for symbol: ${symbol}`);
-            }
-
-            const latestStock = data[0]; // Assume API returns an array
+            const latestStock = data[0];
             setStockData({
                 companyName: symbol,
                 stockIndex: latestStock.price,
@@ -62,7 +64,7 @@ const StockPage = () => {
             });
         } catch (err) {
             console.error("Error fetching stock data:", err.message);
-            setError(err.message); // Display error to the user
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -83,9 +85,7 @@ const StockPage = () => {
                 }
             );
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch user stocks: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`Failed to fetch user stocks: ${response.status}`);
 
             const data = await response.json();
             const ownedStock = data.userPortfolioStocks?.find(
@@ -97,28 +97,49 @@ const StockPage = () => {
         }
     };
 
-    const generateStockUpdates = () => {
-        return setInterval(() => {
-            setStockData((prevStock) => {
-                if (!prevStock) return prevStock;
-
-                const change = (Math.random() * 0.2 - 0.1).toFixed(2); // Random +/- 0.1
-                const newPrice = Math.max(
-                    0,
-                    parseFloat(prevStock.stockIndex) + parseFloat(change)
-                );
-
-                // Trigger flash effect based on price change
-                setFlashClass(parseFloat(change) > 0 ? 'stock-green' : 'stock-red');
-                setTimeout(() => setFlashClass(''), 2000); // Reset flash class after 2 seconds
-
-                return {
-                    ...prevStock,
-                    stockIndex: newPrice.toFixed(2),
-                };
+    const fetchHistoricalData = async () => {
+        try {
+            const response = await fetch(
+                `http://localhost:5169/api/marketdata/marketdata/getcompanypricehistory?symbol=${stockName}&startDate=${startDate}&endDate=${endDate}`
+            );
+    
+            if (!response.ok) throw new Error(`Failed to fetch historical data: ${response.status}`);
+    
+            const data = await response.json();
+    
+            // Remove duplicates and sort chronologically
+            const uniqueData = Object.values(
+                data.reduce((acc, point) => {
+                    const dateKey = new Date(point.date).toISOString().split("T")[0]; // Use the date as a key
+                    if (!acc[dateKey]) {
+                        acc[dateKey] = point; // Only keep the first occurrence
+                    }
+                    return acc;
+                }, {})
+            ).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+    
+            setHistoricalData(uniqueData);
+    
+            const labels = uniqueData.map((point) => new Date(point.date).toLocaleDateString());
+            const prices = uniqueData.map((point) => point.eodPrice);
+    
+            setChartData({
+                labels,
+                datasets: [
+                    {
+                        label: "Historical Prices",
+                        data: prices,
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        tension: 0.1,
+                    },
+                ],
             });
-        }, Math.random() * (10000 - 5000) + 5000); // Random interval between 5-10 seconds
+        } catch (err) {
+            console.error("Error fetching historical data:", err.message);
+            setError(err.message);
+        }
     };
+    
 
     const handleLogout = () => {
         localStorage.removeItem('userData');
@@ -199,7 +220,7 @@ const StockPage = () => {
                             <div className="card-header centered-card-header">
                                 <h4 className="m-0 text-center">{companyName}</h4>
                             </div>
-                            <div className="card-body">
+                            <div className="card-body" style={{ padding: '10px' }}>
                                 <p className={`card-text ${flashClass}`}>
                                     <strong>Stock Index:</strong> ${stockData.stockIndex}
                                 </p>
@@ -215,7 +236,8 @@ const StockPage = () => {
                         </div>
                     </div>
                 </div>
-
+    
+                {/* Buy and Sell Buttons */}
                 <div className="row justify-content-center my-2">
                     <div className="col-md-3 d-grid">
                         <button
@@ -236,33 +258,87 @@ const StockPage = () => {
                         </div>
                     )}
                 </div>
+                <div className="container mt-5">
+    <div className="card shadow-lg mx-auto" style={{ maxWidth: '800px' }}>
+        {/* Card Header */}
+        <div className="card-header semi-transparent-card text-white text-center">
+            <h4 className="m-0">Historical Data</h4>
+        </div>
 
-                <div className="row justify-content-center">
-                    <div className="col-md-8">
-                        <div className="card shadow-lg">
-                            <div className="card-header semi-transparent-card text-white d-flex justify-content-center align-items-center">
-                                <h5 className="text-center m-0">Historical Data</h5>
-                            </div>
-                            <div className="card-body">
-                                {stockData.stockData.length > 0 ? (
-                                    <ul className="list-group">
-                                        {stockData.stockData.map((dataPoint, index) => (
-                                            <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                                                <span>Date: {dataPoint.date}</span>
-                                                <span>Price: ${dataPoint.price.toFixed(2)}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>No historical data available.</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+        {/* Card Body */}
+        <div className="card-body">
+            {/* Filter Section */}
+            <div className="row align-items-end mb-4">
+                <div className="col-md-4">
+                    <label className="form-label">Start Date:</label>
+                    <input
+                        type="date"
+                        className="form-control"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                    />
                 </div>
+                <div className="col-md-4">
+                    <label className="form-label">End Date:</label>
+                    <input
+                        type="date"
+                        className="form-control"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                    />
+                </div>
+                <div className="col-md-4">
+                    <button
+                        className="btn custom-btn w-100"
+                        onClick={fetchHistoricalData}
+                    >
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            {/* Chart Section */}
+            <div className="chart-container" style={{ height: '400px' }}>
+                {chartData ? (
+                    <Line
+                        data={chartData}
+                        options={{
+                            maintainAspectRatio: false,
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                },
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date',
+                                    },
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Price ($)',
+                                    },
+                                },
+                            },
+                        }}
+                    />
+                ) : (
+                    <p className="text-center">No historical data available for this range.</p>
+                )}
+            </div>
+        </div>
+    </div>
+</div>
+
             </main>
         </div>
     );
+    
 };
 
 export default StockPage;

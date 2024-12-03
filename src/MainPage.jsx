@@ -273,7 +273,7 @@ const MainPage = () => {
                                         >
                                             Stock price: ${stock.stockIndex}
                                         </p>
-                                        <StockGraph stockData={stock} />
+
                                     </div>
                                 </div>
                             </div>
