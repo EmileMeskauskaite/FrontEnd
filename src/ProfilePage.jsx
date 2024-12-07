@@ -15,6 +15,7 @@ const ProfilePage = () => {
     useEffect(() => {
         if (userData && userData.id) {
             fetchUserProfile(userData.id);
+            
         } else {
             console.error("ID is undefined, cannot fetch user profile.");
         }
@@ -37,6 +38,7 @@ const ProfilePage = () => {
 
             const data = await response.json();
             setDifficultylevel(data.simulationLevel);
+            console.log('User data:', userData);
         } catch (error) {
             console.error("Error fetching user profile:", error);
             alert("Could not fetch user profile. Please try again later.");
