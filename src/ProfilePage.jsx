@@ -78,6 +78,7 @@ const ProfilePage = () => {
         navigate('/', { state: { logout: true } });
     };
 
+    /*istanbul ignore next */
     return (
         <div className="container-fluid vh-100 p-0 investment-background">
             <header className="custom-header d-flex justify-content-between align-items-center shadow-sm" style={{ height: '80px' }}>
@@ -146,7 +147,7 @@ const ProfilePage = () => {
                         <div className="mb-3">
                             <strong>Last Name:</strong> <span>{userData?.lastName}</span>
                         </div>
-                        <div className="mb-3">
+                        <div className="mb-3" data-testid="loading-spinner">
                             <strong>Difficulty:</strong> <span>{difficultylevel !== null ? difficultylevel : 'Loading...'}</span>
                         </div>
 

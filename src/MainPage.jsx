@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -36,89 +37,97 @@ const MainPage = () => {
         }
     }, [userData]);
 
+
+// Pertvarkymas: Išskaidytos atsakomybės ir pašalinti "code smells" (Long Method, Too Many Responsibilities, God Object, Duplicate Code).
+// Atitinka SOLID principus: SRP (kiekviena funkcija turi vieną atsakomybę) ir OCP (kodas lengvai pritaikomas naujoms funkcijoms).
     const fetchUserProfile = async (id) => {
         try {
-            const response = await fetch(
-                `http://localhost:5169/api/userprofile/getuserprofile?id=${id}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch user profile: ${response.status}`);
-            }
-
+            const response = await fetchUserProfileData(id);
             const data = await response.json();
-
-            const totalPortfolioValue = data.userPortfolioStocks
-                ? data.userPortfolioStocks.reduce(
-                      (sum, stock) => sum + (stock.currentTotalValue || 0),
-                      0
-                  )
-                : 0;
-
-            setWallet({
-                availableFunds: data.balance || 0,
-                totalPortfolioValue,
-            });
+            updateWallet(data);
         } catch (error) {
             console.error("Error fetching user profile:", error);
         }
     };
 
+    const fetchUserProfileData = async (id) => {
+        const response = await fetch(
+            `http://localhost:5169/api/userprofile/getuserprofile?id=${id}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user profile: ${response.status}`);
+        }
+
+        return response;
+    };
+
+    const updateWallet = (data) => {
+        const totalPortfolioValue = data.userPortfolioStocks
+            ? data.userPortfolioStocks.reduce(
+                  (sum, stock) => sum + (stock.currentTotalValue || 0),
+                  0
+              )
+            : 0;
+
+        setWallet({
+            availableFunds: data.balance || 0,
+            totalPortfolioValue,
+        });
+    };
+
+// Fixed Issues:
+// - Long Method: Funkcija išskaidyta į mažesnes dalis – atskirta `fetchCompanyData` funkcija.
+// - SRP (Single Responsibility Principle): Funkcija atsakinga tik už rinkos duomenų gavimą ir apdorojimą.
+// - Improved Error Handling: Klaidų valdymas papildytas "throw" mechanizmu, užtikrinant geresnį pranešimų apie klaidas perdavimą.
+
+    
     const fetchMarketData = async () => {
         try {
             const response = await fetch('http://localhost:5169/api/marketdata/getallcompanies');
+            if (!response.ok) throw new Error('Failed to fetch market data');
 
-            if (response.ok) {
-                const data = await response.json();
-
-                const fullMarketDataPromises = data.map(async (company) => {
-                    try {
-                        const priceResponse = await fetch(
-                            `http://localhost:5169/api/marketdata/marketdata/getcompanylivepricedistinct?symbols=${company.id}`
-                        );
-
-                        if (priceResponse.ok) {
-                            const priceData = await priceResponse.json();
-                            const latestPrice =
-                                priceData.length > 0 ? priceData[0].price : 'N/A';
-
-                            return {
-                                id: company.id,
-                                companyName: company.name,
-                                stockIndex: latestPrice,
-                                stockData: priceData,
-                            };
-                        } else {
-                            return {
-                                id: company.id,
-                                companyName: company.name,
-                                stockIndex: 'N/A',
-                                stockData: [],
-                            };
-                        }
-                    } catch (error) {
-                        return {
-                            id: company.id,
-                            companyName: company.name,
-                            stockIndex: 'N/A',
-                            stockData: [],
-                        };
-                    }
-                });
-
-                const fullMarketData = await Promise.all(fullMarketDataPromises);
-                setMarketData(fullMarketData);
-                setFilteredData(fullMarketData.slice(0, visibleCompanies)); // Initially show first 9
-            }
+            const data = await response.json();
+            const fullMarketData = await Promise.all(data.map(fetchCompanyData));
+            setMarketData(fullMarketData);
+            setFilteredData(fullMarketData.slice(0, visibleCompanies));
         } catch (error) {
             console.error("Error fetching market data:", error);
+        }
+    };
+
+    const fetchCompanyData = async (company) => {
+        try {
+            const priceResponse = await fetch(
+                `http://localhost:5169/api/marketdata/marketdata/getcompanylivepricedistinct?symbols=${company.id}`
+            );
+
+            if (!priceResponse.ok) throw new Error('Failed to fetch company data');
+
+            const priceData = await priceResponse.json();
+            const latestPrice = priceData.length > 0 ? priceData[0].price : 'N/A';
+
+            return {
+                id: company.id,
+                companyName: company.name,
+                stockIndex: latestPrice,
+                stockData: priceData,
+            };
+        } catch (error) {
+            console.error(`Error fetching data for company ${company.id}:`, error);
+            return {
+                id: company.id,
+                companyName: company.name,
+                stockIndex: 'N/A',
+                stockData: [],
+            };
         }
     };
 

@@ -48,7 +48,7 @@ const RegisterPage = () => {
 
         if (password !== repeatPassword) {
             setError('Passwords do not match');
-            //setShowErrorModal(true);
+            setShowErrorModal(true);
             return;
         }
 
